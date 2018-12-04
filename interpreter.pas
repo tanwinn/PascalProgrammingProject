@@ -58,7 +58,7 @@ begin
 end;
 
 function isLogicExpr(expr: string): boolean;
-{** Classify the non-atom expr
+{** Classify the non-atom non-if expr
 	Input: an expression, must not be an atom, else error
 	Output: true if expr is logic expr, false if expr is symExpr}
 var
@@ -72,7 +72,7 @@ begin
 	else if (expr[i] = '-') or (expr[i] = '+') or (expr[i] = '*')  then
 		isLogicExpr:= false
 	else 
-		error('Input is NOT an expression ' + expr);
+		error('Input is NOT a logic nor arithmetic expression ' + expr);
 end;
 
 {=============== *End Error handling & validate functions* ==================}
@@ -82,14 +82,11 @@ end;
 function strToInt(s: string): integer;
 {** Input a string and return an integer}
 var
-	iNum: integer;
-	code: integer;
+	iNum, code: integer;
 begin
+	Val(s, iNum, code);
 	if code = 0 then
-	begin
-		Val(s, iNum, code);
-		strToInt := iNum;
-	end
+		strToInt := iNum
 	else
 		error('::PROGRAM ERROR in strToInt: String is not a number');
 end;
@@ -421,12 +418,8 @@ var
 	cond: boolean;
 	parser: parserType;
 begin
-	if (expr[2] = '-') or (expr[2] = '+') or (expr[2] = '*')  then
-		writeln(argToInt(expr))
-
-	else if (expr[2] = 'a') or (expr[2] = 'o') or (expr[2] = '=') then
-		writeln(argToBool(expr))
-	
+	if exprType(expr) >= bool then
+		writeln(expr)
 	else if (expr[2] = 'i') then
 	begin
 		parser := ifParse(expr);
@@ -452,17 +445,19 @@ begin
 					num: writeln(parser[2]);
 					func: interpreter('(' + parser[2] + ')');			
 				else
-					error('::PROGRAM ERROR:: interpreter func');	
+					error('::PROGRAM ERROR: in interpreter()');	
 				end;
 		end;
 	end
+	
+	else if isLogicExpr(expr) then
+		writeln(argToBool(expr))
+
+	else if not isLogicExpr(expr) then
+		writeln(argToInt(expr))
+
 	else 
-		if exprType(expr) >= bool then
-			writeln(expr)
-		else if isLogicExpr(expr) then
-			writeln(expr)
-		else 
-			error('Invalid input.');
+		error('Invalid input.');
 end;
 
 function args(): string;
