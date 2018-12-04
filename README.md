@@ -44,9 +44,11 @@ To run the program, run
 <a name="interp"/>
 Interpreter for Racket expression.
 <br/>
-To run the program, run 
+To compile the program, run
 
-```./interpreter '<a valid string type Racket expression>'```
+```
+./interpreter '<a valid string type Racket expression>'
+```
 
 ### User input
 The interpreter only deals with integers and booleans. In terms of functions, the interpreter evaluates arithmetic functions that outputs integers, logic functions that outputs booleans, and branching if statement. 
@@ -54,8 +56,10 @@ The interpreter only deals with integers and booleans. In terms of functions, th
 Valid input 
 1. ```./interpreter '1101'``` 
 2. ```./interpreter '#f'```
-<br/>
+
+
 Invalid input
+
 1. ```./interpreter '#a'```
 2. ```./interpreter```
 
@@ -94,7 +98,6 @@ Valid input:
 2. ```./interpreter '(or (+ 2 3) #t)'```
 3. ```./interpreter '(and (= (+ 0 0) (- 2 2)) #t)'```
 
-<br/>
 
 Invalid input:
 1. ```./interpreter '(= (+ 1 0) #t)' ```
