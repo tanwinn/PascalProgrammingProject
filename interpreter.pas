@@ -70,12 +70,12 @@ begin
 	i:=1;
 	while (expr[i]='(') do
 		i:=i+1;
-	if ((expr[i+1] = 'a') and (expr[i] = 'n')) or ((expr[i] = 'o') and (expr[i+1] = 'r')) or (expr[i] = '=') then
+	if ((expr[i] = 'a') and (expr[i+1] = 'n')) or ((expr[i] = 'o') and (expr[i+1] = 'r')) or (expr[i] = '=') then
 		isLogicExpr:= true
 	else if (expr[i] = '-') or (expr[i] = '+') or (expr[i] = '*')  then
 		isLogicExpr:= false
 	else 
-		error('In isExpr: input is NOT an expression');
+		error('Input is NOT an expression ' + expr);
 end;
 
 {=============== *End Error handling & validate functions* ==================}
@@ -111,7 +111,7 @@ function argToInt(arg: string): integer;
 	Output: either error if expr does not return int type
 }
 begin
-	if (isAtom(arg)=-1) then
+	if (isAtom(arg)=-1) and not (isLogicExpr(arg)) then
 		argToInt := symInterpret(arg)
 	else if (isAtom(arg)=1) then
 		argToInt := StrToInt(arg)
@@ -122,9 +122,9 @@ end;
 function argToBool(arg: string): boolean;
 {** take an argument and compute it into a boolean
 	if it's an boolean atom or = expr then evaluate it and return an boolean
-	if it's a integer atom then error}
+	if it's a integer atom then return true}
 begin
-	if (isAtom(arg)=-1) then
+	if (isAtom(arg)=-1) and (isLogicExpr(arg)) then
 		argToBool := logicInterpret(arg)
 	else if (isAtom(arg)=0) then
 	begin
@@ -133,8 +133,12 @@ begin
 		else
 			argToBool := false;
 	end
+	else if (isAtom(arg)=-1) and (not isLogicExpr(arg)) then
+		argToBool := logicInterpret(IntToStr(symInterpret(arg)))
+	else if (isAtom(arg)=1) then
+		argToBool := true
 	else
-		error('Needs to be an boolean or = expression');
+		error('Invalid input.');
 end;
 
 {=============== *End Converting functions* ==================}
@@ -331,7 +335,11 @@ begin
 	while ((i<=length(expr)) and (expr[i]<>')') and (iParser<=2)) do
 	begin
 		while (expr[i] = '(') or (expr[i] = ' ') do
+		begin
+			if (expr[i] = '(') and (iParser > 0) then
+				error('Invalid input.');
 			i := i+1;
+		end;
 
 		while (expr[i] <> ' ') and (expr[i]<>')') and (i<=length(expr)) do
 		begin
@@ -356,6 +364,11 @@ function logicInterpret(expr: string): boolean;
 var
 	parser: stringArray;
 begin
+	if isAtom(expr)=1 then
+	begin
+		logicInterpret := true;
+		exit;
+	end;
 	parser := logicParse(expr);
 	
 	// parser[0] is operator
@@ -427,10 +440,9 @@ var
 	cond: boolean;
 	parser: stringArray;
 begin
-	// writeln('::DEBUG:: Interpreter input: ', expr);
 	if (expr[2] = '-') or (expr[2] = '+') or (expr[2] = '*')  then
 		writeln(argToInt(expr))
-	
+
 	else if (expr[2] = 'a') or (expr[2] = 'o') or (expr[2] = '=') then
 		writeln(argToBool(expr))
 	
@@ -505,7 +517,6 @@ begin
 	// interpreter('(if (and #f #t) 1 (+ 2 1))');
 	// interpreter('(or (= 2 3) #t)');
 	// interpreter('(and (= (+ 0 0) (- 2 2)) #t)');
-	// // writeln(IntToStr(-12));
 	// interpreter('(or #t (= 5 1))');
 	// interpreter('(or #t #f)');
 	interpreter(args());
