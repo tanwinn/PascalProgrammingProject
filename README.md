@@ -93,14 +93,12 @@ Valid input:
 1. ```./interpreter '(= (- 2 2) 0)'```
 2. ```./interpreter '(or (+ 2 3) #t)'```
 3. ```./interpreter '(and (= (+ 0 0) (- 2 2)) #t)'```
+
 <br/>
+
 Invalid input:
-1. ```
-	./interpreter '(= (+ 1 0) #t)' 
-	```
-2. ```
-./interpreter '(= 11)' 
-```
+1. ```./interpreter '(= (+ 1 0) #t)' ```
+2. ```./interpreter '(= 11)' ```
 3. ```./interpreter '(and #t)' ```
 
 ### Error handling
