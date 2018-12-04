@@ -4,7 +4,8 @@ program interpreter;
 	Interpreter for Racket String
 } 
 type
-	stringArray = array [0..2] of string;
+	parserType = array [0..2] of string;
+	dataType = (func = -1, bool, num = 2);
 
 function logicInterpret(expr: string): boolean; forward;
 function argToInt(arg: string): integer; forward;
@@ -13,7 +14,7 @@ function argToBool(arg: string): boolean; forward;
 
 {=============== *Begin Error handling & validate functions* ==================}
 
-function emptyParser(): stringArray;
+function emptyParser(): parserType;
 {** Output an empty parser}
 var 
 	i: integer;
@@ -25,14 +26,13 @@ end;
 procedure error(message: string);
 {** Display error message then terminate the program}
 begin
-	write('ERROR: ');
-	writeln(message);
+	writeln('ERROR: ', message);
 	writeln('Press enter to exit the program...');
 	readln();
 	halt();
 end;
 
-procedure validateParser(parser: stringArray);
+procedure validateParser(parser: parserType);
 var
 	i: integer;
 begin
@@ -41,7 +41,7 @@ begin
 			error('Parsing error. Check your input.');
 end;
 
-function isAtom(expr: string): integer;
+function exprType(expr: string): dataType;
 {** Classify the expression
 	Input: a string-type expression
 	Output: int code: int: 1, bool: 0, non-atom: -1 }	
@@ -49,15 +49,12 @@ var
 	iNum, code: integer;
 begin
 	Val(expr, iNum, code);
-	// expr is an int, return 1
 	if code = 0 then
-		isAtom := 1
-	// expr is a boolean, return 0
+		exprType := num
 	else if (expr[code] = '#') and ((expr[code+1] = 't') or (expr[code+1] = 'f')) then
-		isAtom := 0
-	// expr is not an atom, return -1
+		exprType := bool
 	else
-		isAtom := -1; 
+		exprType := func; 
 end;
 
 function isLogicExpr(expr: string): boolean;
@@ -82,7 +79,7 @@ end;
 
 {=============== *Begin Converting functions* ==================}
 
-function StrToInt(s: string): integer;
+function strToInt(s: string): integer;
 {** Input a string and return an integer}
 var
 	iNum: integer;
@@ -91,18 +88,18 @@ begin
 	if code = 0 then
 	begin
 		Val(s, iNum, code);
-		StrToInt := iNum;
+		strToInt := iNum;
 	end
 	else
-		error('PROGRAM ERROR in StrToInt: string is not a number');
+		error('::PROGRAM ERROR in strToInt: String is not a number');
 end;
 
-function IntToStr(num: integer): string;
+function intToStr(num: integer): string;
 var
 	s: string;
 begin
 	Str(num, s);
-	IntToStr := s;
+	intToStr := s;
 end;
 
 function argToInt(arg: string): integer;
@@ -111,10 +108,10 @@ function argToInt(arg: string): integer;
 	Output: either error if expr does not return int type
 }
 begin
-	if (isAtom(arg)=-1) and not (isLogicExpr(arg)) then
+	if (exprType(arg) = func) and not (isLogicExpr(arg)) then
 		argToInt := symInterpret(arg)
-	else if (isAtom(arg)=1) then
-		argToInt := StrToInt(arg)
+	else if (exprType(arg)=num) then
+		argToInt := strToInt(arg)
 	else
 		error('Needs to be an integer or arithmetic expression');
 end;
@@ -124,18 +121,18 @@ function argToBool(arg: string): boolean;
 	if it's an boolean atom or = expr then evaluate it and return an boolean
 	if it's a integer atom then return true}
 begin
-	if (isAtom(arg)=-1) and (isLogicExpr(arg)) then
+	if (exprType(arg) = func) and (isLogicExpr(arg)) then
 		argToBool := logicInterpret(arg)
-	else if (isAtom(arg)=0) then
+	else if (exprType(arg) = bool) then
 	begin
 		if arg[2] = 't' then
 			argToBool := true
 		else
 			argToBool := false;
 	end
-	else if (isAtom(arg)=-1) and (not isLogicExpr(arg)) then
-		argToBool := logicInterpret(IntToStr(symInterpret(arg)))
-	else if (isAtom(arg)=1) then
+	else if (exprType(arg)= func) and (not isLogicExpr(arg)) then
+		argToBool := logicInterpret(intToStr(symInterpret(arg)))
+	else if (exprType(arg) = num) then
 		argToBool := true
 	else
 		error('Invalid input.');
@@ -145,7 +142,7 @@ end;
 
 {================== *Begin PARSER* =====================}
 
-function logicParse(expr: string): stringArray;
+function logicParse(expr: string): parserType;
 {** Parser for logic functions: Equals, And, Or
 		Logic Parser contains 3 elements: 
 		sym, first arg, and second arg
@@ -158,26 +155,23 @@ var
 	bracket: integer;
 	tempExpr: string;
 begin
-	// clean up the parser
+	
 	logicParse := emptyParser();
 
 	// clean up the bracket
 	if (expr[1]='(') then 
 	begin
 		tempExpr := '';
-		for i:=2 to length(expr)-1 do
+		for i := 2 to length(expr)-1 do
 			tempExpr:= tempExpr + expr[i];
 		logicParse := logicParse(tempExpr);
 		exit;
 	end;
 	
-	// clean up the parser
-	logicParse := emptyParser();
-
 	iParser := 0; 
-	bracket:=0;
+	bracket := 0;
 	i := 1;
-	// start with the second char of expr 
+	
 	while (expr[i] <> ' ') and (i<=length(expr)) do
 	begin
 		if i > length(expr) then
@@ -204,14 +198,14 @@ begin
 		begin		
 			// count the bracket inside the expr
 			if (expr[i] = '(') then
-				bracket:= bracket + 1
+				bracket := bracket + 1
 			
 			// if there's only one bracket at the start of the 
 			// expr and we reach a closing bracket
 			// it means that we finish this expression
 			else if ((expr[i] = ')') and (bracket = 1)) then
 			begin
-				i := i+1;
+				i := i + 1;
 				break;
 			end
 			
@@ -225,16 +219,15 @@ begin
 			// then whitespace signals the expr is over
 			else if ((expr[i] = ' ') and (bracket = 0)) then
 			begin
-				i := i+1;
+				i := i + 1;
 				break;
 			end;
 
-			// parse the expr into the parser
 			logicParse[iParser] := logicParse[iParser] + expr[i];
 			i := i + 1;
 		end;
 		// go to the next parser element
-		iParser := iParser+1;
+		iParser := iParser + 1;
 		bracket := 0;
 	end;
 
@@ -242,24 +235,24 @@ begin
 	
 end;
 
-// Parser for if statement
-function ifParse(expr: string): stringArray;
+function ifParse(expr: string): parserType;
+{** Parser for if statement
+
+}
 var
 	i, iParser: integer;
 	bracket: integer;
-
-// if statement always has three elements: 
-// cond, tStatement, and fStatement
-// parser into 3 parts	
 begin
+	// if statement always has three elements: 
+	// cond, tStatement, and fStatement
+	// parser into 3 parts	
 	
-	// clean up the parser
 	ifParse:= emptyParser();
 
 	i := 4;
-	iParser:= 0;
+	iParser := 0;
 	bracket := 0;
-	// (if #t 1 2)
+	
 	while ((i <= length(expr)-1) and (iParser <= 2)) do
 	begin
 		// ignore the ( or white space before cond
@@ -308,7 +301,6 @@ begin
 			i := i + 1;
 		end;
 
-		// go to the next parser element
 		iParser := iParser+1;
 		bracket := 0;
 	end;
@@ -317,7 +309,7 @@ begin
 	
 end;
 
-function symParse(expr: string): stringArray;
+function symParse(expr: string): parserType;
 {** Parser for arithmetic operations
 	Input: a string-type expression
 	Output: parser of +, -, or *
@@ -362,9 +354,9 @@ function logicInterpret(expr: string): boolean;
 	Output: evaluated expression type boolean
 }
 var
-	parser: stringArray;
+	parser: parserType;
 begin
-	if isAtom(expr)=1 then
+	if exprType(expr) = num then
 	begin
 		logicInterpret := true;
 		exit;
@@ -375,12 +367,7 @@ begin
 	// parser[1] and [2] are arguments
 	case parser[0] of
 		'=':
-			begin
-				if (argToInt(parser[1]) = argToInt(parser[2])) then
-					logicInterpret := true
-				else
-					logicInterpret := false;
-			end;
+			logicInterpret := argToInt(parser[1]) = argToInt(parser[2]);
 		'and':
 			logicInterpret := (argToBool(parser[1]) and argToBool(parser[2]));
 		'or':
@@ -395,33 +382,27 @@ function symInterpret(expr: string): longint;
 }
 var
 	a, b: longint;
-	parser: stringArray;
+	parser: parserType;
 	sym: string;
 begin
 	parser := symParse(expr);
 	
 	sym:= parser[0];
-	a := StrToInt(parser[1]);
-	b := StrToInt(parser[2]);
+	a := strToInt(parser[1]);
+	b := strToInt(parser[2]);
 	
 	case sym of
-		'+':
-			begin
-				symInterpret := a+b;
-			end;
-		'*':
-			begin
-				symInterpret := a*b;
-			end;
+		'+': symInterpret := a+b;
+		'*': symInterpret := a*b;
 		'-':
 			begin
 				// desugar
-				b := StrToInt(parser[2]);
+				b := strToInt(parser[2]);
 				parser[0]:= '+';
-				parser[2]:= IntToStr(-1*b);
+				parser[2]:= intToStr(-1 * b);
 				expr := '(' + parser[0] + ' ' + parser[1] + ' ' + parser[2] + ')' ;
 				
-				// evluate the desugared expr	
+				// evaluate the desugared expr	
 				symInterpret := symInterpret(expr);
 			end;
 		else
@@ -438,7 +419,7 @@ procedure interpreter(expr: string);
 }
 var
 	cond: boolean;
-	parser: stringArray;
+	parser: parserType;
 begin
 	if (expr[2] = '-') or (expr[2] = '+') or (expr[2] = '*')  then
 		writeln(argToInt(expr))
@@ -449,43 +430,34 @@ begin
 	else if (expr[2] = 'i') then
 	begin
 		parser := ifParse(expr);
-		case isAtom(parser[0]) of
-			// cond is boolean
-			0: cond := argToBool(parser[0]);
-			// cond is integer --> always true
-			1: cond := true;
-			// cond is expr --> evaluate 
-			-1: cond := argToBool(parser[0]);
+		case exprType(parser[0]) of
+			bool: cond := argToBool(parser[0]);
+			num: cond := true;
+			func: cond := argToBool(parser[0]);
 		else
-			error('::PROGRAM ERROR:: interpreter func');
+			error('::PROGRAM ERROR in interpreter()');
 		end;
 		case cond of
 			true:
-				case isAtom(parser[1]) of
-					// cond is boolean
-					0: writeln(parser[1]);
-					// cond is integer 
-					1: writeln(parser[1]);
-					// cond is expr
-					-1: interpreter('(' + parser[1] + ')');	
+				case exprType(parser[1]) of
+					bool: writeln(parser[1]);
+					num: writeln(parser[1]);
+					func: interpreter('(' + parser[1] + ')');	
 				else
-					error('::PROGRAM ERROR:: interpreter func');	
+					error('::PROGRAM ERROR in interpreter()');	
 				end;
 			false:
-				case isAtom(parser[2]) of
-					// cond is boolean
-					0: writeln(parser[2]);
-					// cond is integer 
-					1: writeln(parser[2]);
-					// cond is expr
-					-1: interpreter('(' + parser[2] + ')');			
+				case exprType(parser[2]) of
+					bool: writeln(parser[2]);
+					num: writeln(parser[2]);
+					func: interpreter('(' + parser[2] + ')');			
 				else
 					error('::PROGRAM ERROR:: interpreter func');	
 				end;
 		end;
 	end
 	else 
-		if isAtom(expr)>=0 then
+		if exprType(expr) >= bool then
 			writeln(expr)
 		else if isLogicExpr(expr) then
 			writeln(expr)
@@ -503,21 +475,5 @@ begin
 end;
 
 begin
-	// interpreter('(+ 123 -23)');
-	// interpreter('(- 0 23)');
-	// interpreter('(- 23220 23221)');
-	// interpreter('(* 0 2238923)');	
-	// interpreter('(if (= 1 0) 1 (= 0 0))');
-	// interpreter('(if (= (* 7 1) (+ 3 4)) 1 0)');
-	// interpreter('(if (= (* 7 1) 0) 1 0)');
-	// interpreter('(if (= 1 0) 1 0)');
-	// interpreter('(if (= (- 2 2) 0) 1 0)');
-	// interpreter('(if #f (+ 2 1) (or #t (= (+ 5 4) (* -3 1))))');
-	// interpreter('(if #f 1 (+ 2 3))');
-	// interpreter('(if (and #f #t) 1 (+ 2 1))');
-	// interpreter('(or (= 2 3) #t)');
-	// interpreter('(and (= (+ 0 0) (- 2 2)) #t)');
-	// interpreter('(or #t (= 5 1))');
-	// interpreter('(or #t #f)');
 	interpreter(args());
 end.
