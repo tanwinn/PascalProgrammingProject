@@ -70,6 +70,9 @@ Valid input: ```./interpreter '(if (= 2 2) #t #f)'```
 Invalid input: ```./interpreter '(if (= 2 2) #f)'```
 
 ### Arithmetic Function Interpretation with *+*, *-*, and _*_
+```
+./interpreter (<ArithOp> <integer arg> <integer arg>)
+```
 Arithmetic function takes exactly two integer input arguments and outputs an integer. 
 <br/>
 Valid input: ```./interpreter '(+ 2 1222)'```
@@ -77,6 +80,9 @@ Valid input: ```./interpreter '(+ 2 1222)'```
 Invalid input: ```./interpreter '(+ 2 (* 1 0))'```
 
 ### Logic Interpretation with *and*, *or*, & *=*
+```
+./interpreter (<LogicOp> <arg> <arg>)
+```
 Logic function takes exactly two arguments and outputs a boolean expression. 
 <br/>
 ```or``` and ```and```'s take any kind of argument. Integer arguments are true. 
@@ -87,10 +93,11 @@ Valid input:
 1. ```./interpreter '(= (- 2 2) 0)'```
 2. ```./interpreter '(or (+ 2 3) #t)'```
 3. ```./interpreter '(and (= (+ 0 0) (- 2 2)) #t)'```
+<br/>
 Invalid input:
-1. ```./interpreter '(= (+ 1 0) #t)'```
-2. ```./interpreter '(= 11)'```
-3. ```./interpreter '(and #t)'```
+1. ```./interpreter '(= (+ 1 0) #t)' ```
+2. ```./interpreter '(= 11)' ```
+3. ```./interpreter '(and #t)' ```
 
 ### Error handling
 Inputs that violate the above rules will be invalid. Invalid inputs will result in an error message and program termination. Common errors are invalid numbers of arguments, invalid data types, etc.
