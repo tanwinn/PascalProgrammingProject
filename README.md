@@ -71,7 +71,7 @@ Invalid input: ```./interpreter '(if (= 2 2) #f)'```
 
 ### Arithmetic Function Interpretation with *+*, *-*, and _*_
 ```
-./interpreter (<ArithOp> <integer arg> <integer arg>)
+./interpreter '(<ArithOp> <integer arg> <integer arg>)'
 ```
 Arithmetic function takes exactly two integer input arguments and outputs an integer. 
 <br/>
@@ -81,7 +81,7 @@ Invalid input: ```./interpreter '(+ 2 (* 1 0))'```
 
 ### Logic Interpretation with *and*, *or*, & *=*
 ```
-./interpreter (<LogicOp> <arg> <arg>)
+./interpreter '(<LogicOp> <arg> <arg>)'
 ```
 Logic function takes exactly two arguments and outputs a boolean expression. 
 <br/>
@@ -95,8 +95,12 @@ Valid input:
 3. ```./interpreter '(and (= (+ 0 0) (- 2 2)) #t)'```
 <br/>
 Invalid input:
-1. ```./interpreter '(= (+ 1 0) #t)' ```
-2. ```./interpreter '(= 11)' ```
+1. ```
+	./interpreter '(= (+ 1 0) #t)' 
+	```
+2. ```
+./interpreter '(= 11)' 
+```
 3. ```./interpreter '(and #t)' ```
 
 ### Error handling
