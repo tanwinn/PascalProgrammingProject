@@ -72,7 +72,7 @@ begin
 	else if (expr[i] = '-') or (expr[i] = '+') or (expr[i] = '*')  then
 		isLogicExpr:= false
 	else 
-		error('Input is NOT a logic nor arithmetic expression ' + expr);
+		error('Input is NOT a logic nor arithmetic expression ');
 end;
 
 {=============== *End Error handling & validate functions* ==================}
@@ -365,9 +365,9 @@ begin
 		'=':
 			logicInterpret := argToInt(parser[1]) = argToInt(parser[2]);
 		'and':
-			logicInterpret := (argToBool(parser[1]) and argToBool(parser[2]));
+			logicInterpret := argToBool(parser[1]) and argToBool(parser[2]);
 		'or':
-			logicInterpret := (argToBool(parser[1]) or argToBool(parser[2]));
+			logicInterpret := argToBool(parser[1]) or argToBool(parser[2]);
 	end;
 end;
 
@@ -393,7 +393,6 @@ begin
 		'-':
 			begin
 				// desugar
-				b := strToInt(parser[2]);
 				parser[0]:= '+';
 				parser[2]:= intToStr(-1 * b);
 				expr := '(' + parser[0] + ' ' + parser[1] + ' ' + parser[2] + ')' ;
@@ -465,7 +464,7 @@ begin
 	if ParamCount = 1 then
 		args := ParamStr(1)
 	else
-		error('The program requires one argument of string type. For example: ./interpreter (string)');
+		error('The program requires one argument of string type.');
 end;
 
 begin
