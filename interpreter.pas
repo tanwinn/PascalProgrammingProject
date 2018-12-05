@@ -5,7 +5,7 @@ program interpreter;
 } 
 type
 	parserType = array [0..2] of string;
-	dataType = (func = -1, bool, num = 2);
+	dataType = (func = -1, bool, num = 1);
 
 function logicInterpret(expr: string): boolean; forward;
 function argToInt(arg: string): integer; forward;
@@ -315,7 +315,6 @@ var
 	i, iParser: integer;
 
 begin
-	// clean up the parser
 	symParse := emptyParser();
 
 	i := 1;
